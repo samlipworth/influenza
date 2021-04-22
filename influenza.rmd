@@ -90,10 +90,10 @@ raw_data<- raw_data %>%
   mutate(Domain = case_when(
     Domain == '1' ~ 'Scope and purpose',
     Domain == '2' ~ 'Stakeholder involvement',
-    Domain == '3' ~ 'Rigor of development',
+    Domain == '3' ~ 'Rigour of development',
     Domain == '4' ~ 'Clarity of presentation',
     Domain == '5' ~ 'Applicability',
-    Domain == '6' ~ 'Editorial independance'
+    Domain == '6' ~ 'Editorial independence'
   ))
 
 #now we convert to a weighted score according to the instructions of the AGREE authors
