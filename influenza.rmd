@@ -1,1 +1,18 @@
 
+
+
+```{r Library import}
+library(tidyverse)
+```
+
+```{r Data import}
+raw_data<-read_csv('./Domain scores for R 21.04.2021.csv')
+
+#make the column names more R friendly
+names(raw_data)<-c('Guideline_ID','Domain','Scorer_1','Scorer_2','Issuing_organisation')
+
+
+#remove NA rows
+raw_data<-filter(raw_data,!is.na(Guideline_ID))
+```
+
