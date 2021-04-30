@@ -117,7 +117,7 @@ raw_data<-left_join(raw_data,issueing_orgs,by=c("Guideline_ID"="Guideline_ID"))
 
 ```{r melina plot}
 
-raw_data$Domain<-factor(raw_data$Domain,levels = c('Scope and purpose','Stakeholder involvement','Rigor of development','Clarity of presentation','Applicability','Editorial independance'))
+raw_data$Domain<-factor(raw_data$Domain,levels = c('Scope and purpose','Stakeholder involvement','Rigour of development','Clarity of presentation','Applicability','Editorial independence'))
 
 ggplot(raw_data) +
   aes(x=Domain,y=weighted,colour=Domain) +
