@@ -1,0 +1,142 @@
+
+
+
+```{r Library import}
+library(tidyverse)
+library(cowplot)
+library(grid)
+geom_flat_violin <- function(mapping = NULL, data = NULL, stat = "ydensity",
+                             position = "dodge", trim = TRUE, scale = "area",
+                             show.legend = NA, inherit.aes = TRUE, ...) {
+  layer(
+    data = data,
+    mapping = mapping,
+    stat = stat,
+    geom = GeomFlatViolin,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = list(
+      trim = trim,
+      scale = scale,
+      ...
+    )
+  )
+}
+
+GeomFlatViolin <-
+  ggproto("GeomFlatViolin", Geom,
+    setup_data = function(data, params) {
+      data$width <- data$width %||%
+        params$width %||% (resolution(data$x, FALSE) * 0.9)
+
+      # ymin, ymax, xmin, and xmax define the bounding rectangle for each group
+      data %>%
+        group_by(group) %>%
+        mutate(
+          ymin = min(y),
+          ymax = max(y),
+          xmin = x,
+          xmax = x + width / 2
+        )
+    },
+
+    draw_group = function(data, panel_scales, coord) {
+      # Find the points for the line to go all the way around
+      data <- transform(data,
+        xminv = x,
+        xmaxv = x + violinwidth * (xmax - x)
+      )
+
+      # Make sure it's sorted properly to draw the outline
+      newdata <- rbind(
+        plyr::arrange(transform(data, x = xminv), y),
+        plyr::arrange(transform(data, x = xmaxv), -y)
+      )
+
+      # Close the polygon: set first and last point the same
+      # Needed for coord_polar and such
+      newdata <- rbind(newdata, newdata[1, ])
+
+      ggplot2:::ggname("geom_flat_violin", GeomPolygon$draw_panel(newdata, panel_scales, coord))
+    },
+
+    draw_key = draw_key_polygon,
+
+    default_aes = aes(
+      weight = 1, colour = "grey20", fill = "white", size = 0.5,
+      alpha = NA, linetype = "solid"
+    ),
+
+    required_aes = c("x", "y")
+  )
+
+
+```
+
+```{r Data import and cleaning}
+raw_data<-read_csv('./Domain scores for R 21.04.2021.csv')
+
+#make the column names more R friendly
+names(raw_data)<-c('Guideline_ID','Domain','Scorer_1','Scorer_2','Issuing_organisation')
+
+issueing_orgs<-select(raw_data,Guideline_ID,Issuing_organisation) %>% distinct()
+#remove NA rows
+raw_data<-filter(raw_data,!is.na(Guideline_ID))
+
+#lets call the domains something meaningful
+
+raw_data<- raw_data %>% 
+  mutate(Domain = case_when(
+    Domain == '1' ~ 'Scope and purpose',
+    Domain == '2' ~ 'Stakeholder involvement',
+    Domain == '3' ~ 'Rigour of development',
+    Domain == '4' ~ 'Clarity of presentation',
+    Domain == '5' ~ 'Applicability',
+    Domain == '6' ~ 'Editorial independence'
+  ))
+
+#now we convert to a weighted score according to the instructions of the AGREE authors
+raw_data<-raw_data %>% group_by(Guideline_ID,Domain) %>% summarise(R1 = sum(Scorer_1), R2=sum(Scorer_2))
+
+raw_data$consensus<-(raw_data$R1 + raw_data$R2)
+
+max_scores<-read_csv('./max_scores.csv')
+
+raw_data<-left_join(raw_data,max_scores,by=c("Domain"="Domain"))
+
+raw_data$min<-(raw_data$one_reviewer/7)*2
+raw_data$weighted<-(raw_data$consensus - raw_data$min)/(raw_data$two_reviewers - raw_data$min)
+
+raw_data$weighted<-round(raw_data$weighted,2)
+
+#add the issuing org back in
+raw_data<-left_join(raw_data,issueing_orgs,by=c("Guideline_ID"="Guideline_ID"))
+```
+
+
+```{r melina plot}
+
+raw_data$Domain<-factor(raw_data$Domain,levels = c('Scope and purpose','Stakeholder involvement','Rigour of development','Clarity of presentation','Applicability','Editorial independence'))
+
+ggplot(raw_data) +
+  aes(x=Domain,y=weighted,colour=Domain) +
+  geom_jitter() + 
+  geom_violin(size=0.5, alpha=0.5) +
+  labs(title="Agree II domain scores") + theme_light()+
+  theme(axis.text.x = element_text(angle = 60, size=7,hjust = 1)) +
+  theme(legend.title = element_text(size = 7), legend.text = element_text(size = 7))+
+  theme(axis.text=element_text(size=7), axis.title=element_text(size=7,face="bold"))  
+
+# @Izzy/Melina - our plots look a little different for Domains 2+3 - one of use has made a mistake - can you check please?
+```
+
+```{r raincloud}
+ggplot(raw_data,aes(x=Domain,y=weighted, fill = Domain))+
+  geom_flat_violin(position = position_nudge(x = .25, y = 0),adjust =2)+
+  geom_point(position = position_jitter(width = .15), size = .25)+
+  geom_boxplot(aes(x = as.numeric(Domain)+0.25, y = weighted),outlier.shape = NA, alpha = 0.3, width = .1, colour = "BLACK") +
+  ylab('Score')+xlab('Domain')+coord_flip()+theme_cowplot()+guides(fill = FALSE, colour = FALSE)
+```
+
+
