@@ -75,6 +75,7 @@ GeomFlatViolin <-
 ```
 
 ```{r Data import and cleaning}
+setwd('../data')
 raw_data<-read_csv('./Domain scores for R 21.04.2021.csv')
 
 #make the column names more R friendly
@@ -156,3 +157,5 @@ ggplot(raw_data) +
   facet_wrap(~Issuing_organisation)
 ```
 
+```{r Agree stats}
+agree_scores <- raw_data %>% group_by(Domain) %>% summarise(q1=quantile(weighted,probs=c(0.25)), q2=quantile(weighted,probs=c(0.5)), q3=quantile(weighted,probs=c(0.75)), q3-q1)
