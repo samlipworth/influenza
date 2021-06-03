@@ -123,10 +123,10 @@ ggplot(raw_data) +
   aes(x=Domain,y=weighted,colour=Domain) +
   geom_jitter() + 
   geom_violin(size=0.5, alpha=0.5) +
-  labs(title="Agree II domain scores") + theme_light()+
-  theme(axis.text.x = element_text(angle = 60, size=7,hjust = 1)) +
-  theme(legend.title = element_text(size = 7), legend.text = element_text(size = 7))+
-  theme(axis.text=element_text(size=7), axis.title=element_text(size=7,face="bold"))  
+  ylab('Score')+xlab('Domain') +    theme_light()+
+  theme(axis.text.x = element_text(angle = 60, size=15,hjust = 1)) +
+  theme(legend.title = element_text(size =15), legend.text = element_text(size = 15))+
+  theme(axis.text=element_text(size=15), axis.title=element_text(size=15,face="bold"))
 
 # @Izzy/Melina - our plots look a little different for Domains 2+3 - one of use has made a mistake - can you check please?
 ```
@@ -139,4 +139,20 @@ ggplot(raw_data,aes(x=Domain,y=weighted, fill = Domain))+
   ylab('Score')+xlab('Domain')+coord_flip()+theme_cowplot()+guides(fill = FALSE, colour = FALSE)
 ```
 
+```{r melina plot 2}
+raw_data<- raw_data %>% 
+  mutate(Issuing_organisation = case_when(
+    Issuing_organisation == '1' ~ 'International Organisation',
+    Issuing_organisation == '2' ~ 'National Organisation'
+  ))
+raw_data$Domain<-factor(raw_data$Domain,levels = c('Scope and purpose','Stakeholder involvement','Rigour of development','Clarity of presentation','Applicability','Editorial independence'))
+ggplot(raw_data) +
+  aes(x=Domain,y=weighted, fill=Domain) +
+  geom_jitter() + 
+  geom_boxplot(size=0.5, alpha=0.5) + theme_light()+
+  theme(axis.text.x = element_text(angle = 60, size=15,hjust = 1)) +
+  theme(legend.title = element_text(size =15), legend.text = element_text(size = 15))+
+  theme(axis.text=element_text(size=15), axis.title=element_text(size=15,face="bold")) +
+  facet_wrap(~Issuing_organisation)
+```
 
