@@ -158,4 +158,4 @@ ggplot(raw_data) +
 ```
 
 ```{r Agree stats}
-agree_scores <- raw_data %>% group_by(Domain) %>% summarise(q1=quantile(weighted,probs=c(0.25)), q2=quantile(weighted,probs=c(0.5)), q3=quantile(weighted,probs=c(0.75)), q3-q1)
+agree_scores <- raw_data %>% group_by(Domain) %>% summarise(q1=quantile(weighted,probs=c(0.25)), q2=quantile(weighted,probs=c(0.5)), q3=quantile(weighted,probs=c(0.75)))
