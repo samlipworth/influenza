@@ -75,7 +75,8 @@ GeomFlatViolin <-
 ```
 
 ```{r Data import and cleaning}
-raw_data<-read_csv('./Domain scores for R 21.04.2021.csv')
+#setwd('../data')
+raw_data<-read_csv('../data/Domain scores for R 21.04.2021.csv')
 
 #make the column names more R friendly
 names(raw_data)<-c('Guideline_ID','Domain','Scorer_1','Scorer_2','Issuing_organisation')
@@ -101,7 +102,7 @@ raw_data<-raw_data %>% group_by(Guideline_ID,Domain) %>% summarise(R1 = sum(Scor
 
 raw_data$consensus<-(raw_data$R1 + raw_data$R2)
 
-max_scores<-read_csv('./max_scores.csv')
+max_scores<-read_csv('../data/max_scores.csv')
 
 raw_data<-left_join(raw_data,max_scores,by=c("Domain"="Domain"))
 
@@ -156,3 +157,7 @@ ggplot(raw_data) +
   facet_wrap(~Issuing_organisation)
 ```
 
+```{r Agree stats}
+agree_scores <- raw_data %>% group_by(Domain) %>% summarise(q1=quantile(weighted,probs=c(0.25)), q2=quantile(weighted,probs=c(0.5)), q3=quantile(weighted,probs=c(0.75)))
+agree_scores
+```
